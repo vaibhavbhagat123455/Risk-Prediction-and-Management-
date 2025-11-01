@@ -1,130 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Risk Analysis - ConstructSafe AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Header -->
-        <header class="mb-8">
-            <a href="/" class="text-blue-500 hover:text-blue-700 mb-4 inline-block">← Back to Dashboard</a>
-            <h1 class="text-3xl font-bold text-gray-800">🔍 Risk Analysis</h1>
-            <p class="text-gray-600">Analyze project documents for potential risks</p>
-        </header>
+<!-- Add this to the existing analyze.html, before the last closing </div> -->
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Analysis Form -->
-            <div class="bg-white p-6 rounded-lg shadow-sm border">
-                <h2 class="text-xl font-semibold mb-4">Analyze Text Content</h2>
-                
-                <form id="analysisForm">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">Select Project</label>
-                        <select name="project_id" class="w-full border border-gray-300 rounded px-3 py-2" required>
-                            <option value="">Choose a project...</option>
-                            {% for project_id, project in projects.items() %}
-                            <option value="{{ project_id }}">{{ project.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">Paste Text to Analyze</label>
-                        <textarea 
-                            name="text" 
-                            placeholder="Paste project documents, emails, reports, meeting minutes here..."
-                            class="w-full border border-gray-300 rounded px-3 py-2 h-48"
-                            required
-                        ></textarea>
-                    </div>
-                    
-                    <button 
-                        type="submit" 
-                        class="w-full bg-blue-500 text-white py-3 px-4 rounded hover:bg-blue-600 transition"
-                    >
-                        Analyze for Risks
-                    </button>
-                </form>
-            </div>
-
-            <!-- Results Section -->
-            <div class="bg-white p-6 rounded-lg shadow-sm border">
-                <h2 class="text-xl font-semibold mb-4">Analysis Results</h2>
-                <div id="results" class="space-y-4">
-                    <p class="text-gray-500 text-center py-8">Results will appear here after analysis...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sample Text Section -->
-        <div class="mt-8 bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-            <h3 class="text-lg font-semibold mb-3">💡 Sample Text for Testing</h3>
-            <p class="text-gray-700 mb-3">Try pasting this sample text to test the system:</p>
-            <div class="bg-white p-4 rounded border text-sm text-gray-600">
-                "The project is experiencing significant delays due to adverse weather conditions and late material deliveries. 
-                There are safety concerns with the current scaffolding installation that need immediate attention. 
-                We're also anticipating potential cost overruns from recent supplier price increases. 
-                Quality issues have been reported with the concrete pours in section B."
-            </div>
-        </div>
+<!-- Analysis History -->
+<div class="mt-8 bg-white p-6 rounded-lg shadow-sm border">
+    <h2 class="text-xl font-semibold mb-4">Recent Analyses</h2>
+    <div id="analysisHistory" class="space-y-3">
+        <p class="text-gray-500 text-center py-4">Analysis history will appear here...</p>
     </div>
+</div>
 
-    <script>
-        document.getElementById('analysisForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+<script>
+    // Load analysis history
+    async function loadAnalysisHistory() {
+        try {
+            // This would typically call an API endpoint
+            const history = [
+                { date: '2024-01-15', project: 'Office Tower', risks: 3, score: '65%' },
+                { date: '2024-01-14', project: 'Bridge Construction', risks: 2, score: '45%' },
+                { date: '2024-01-13', project: 'Hospital Renovation', risks: 4, score: '72%' }
+            ];
             
-            const formData = new FormData(this);
-            const resultsDiv = document.getElementById('results');
-            
-            // Show loading state
-            resultsDiv.innerHTML = '<p class="text-blue-500 text-center py-4">Analyzing text for risks...</p>';
-            
-            try {
-                const response = await fetch('/api/analyze/text', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Display results
-                    let resultsHTML = `
-                        <div class="bg-green-50 p-4 rounded border border-green-200 mb-4">
-                            <h3 class="font-semibold text-green-800">Analysis Complete!</h3>
-                            <p>Detected ${data.total_risks_detected} risk categories</p>
-                            <p>Overall Risk Level: <span class="font-bold ${data.risk_level === 'HIGH' ? 'text-red-600' : data.risk_level === 'MEDIUM' ? 'text-orange-600' : 'text-yellow-600'}">${data.risk_level}</span></p>
+            let historyHTML = '';
+            history.forEach(item => {
+                historyHTML += `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <div>
+                            <span class="font-medium">${item.project}</span>
+                            <p class="text-sm text-gray-500">${item.date} • ${item.risks} risks found</p>
                         </div>
-                    `;
-                    
-                    data.detected_risks.forEach(risk => {
-                        const riskColor = risk.priority === 'HIGH' ? 'red' : risk.priority === 'MEDIUM' ? 'orange' : 'yellow';
-                        resultsHTML += `
-                            <div class="border border-${riskColor}-200 rounded p-4 bg-${riskColor}-50">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="font-semibold text-${riskColor}-800">${risk.category}</h4>
-                                    <span class="px-2 py-1 text-xs bg-${riskColor}-100 text-${riskColor}-800 rounded">${risk.priority} PRIORITY</span>
-                                </div>
-                                <p class="text-sm text-gray-600 mb-2">Keywords found: ${risk.keywords_found.join(', ')}</p>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-${riskColor}-500 h-2 rounded-full" style="width: ${(risk.risk_score * 100)}%"></div>
-                                </div>
-                                <p class="text-xs text-gray-500 mt-1">Risk score: ${(risk.risk_score * 100).toFixed(0)}%</p>
-                            </div>
-                        `;
-                    });
-                    
-                    resultsDiv.innerHTML = resultsHTML;
-                } else {
-                    resultsDiv.innerHTML = '<p class="text-red-500 text-center py-4">Error analyzing text. Please try again.</p>';
-                }
-            } catch (error) {
-                resultsDiv.innerHTML = '<p class="text-red-500 text-center py-4">Network error. Please check your connection.</p>';
-            }
-        });
-    </script>
-</body>
-</html>
+                        <span class="px-2 py-1 text-xs rounded bg-orange-100 text-orange-800">
+                            Score: ${item.score}
+                        </span>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('analysisHistory').innerHTML = historyHTML;
+        } catch (error) {
+            console.error('Error loading history:', error);
+        }
+    }
+    
+    // Load history when page loads
+    loadAnalysisHistory();
+</script>
